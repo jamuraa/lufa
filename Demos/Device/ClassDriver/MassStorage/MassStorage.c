@@ -89,6 +89,8 @@ void SetupHardware(void)
 
 	/* Disable clock division */
 	clock_prescale_set(clock_div_1);
+
+  SPI_Init(SPI_SPEED_FCPU_DIV_2 | SPI_ORDER_MSB_FIRST | SPI_SCK_LEAD_FALLING | SPI_SAMPLE_TRAILING | SPI_MODE_MASTER);
 #elif (ARCH == ARCH_XMEGA)
 	/* Start the PLL to multiply the 2MHz RC oscillator to 32MHz and switch the CPU core to run from it */
 	XMEGACLK_StartPLL(CLOCK_SRC_INT_RC2MHZ, 2000000, F_CPU);
@@ -99,11 +101,19 @@ void SetupHardware(void)
 	XMEGACLK_StartDFLL(CLOCK_SRC_INT_RC32MHZ, DFLL_REF_INT_USBSOF, F_USB);
 
 	PMIC.CTRL = PMIC_LOLVLEN_bm | PMIC_MEDLVLEN_bm | PMIC_HILVLEN_bm;
+
+  #if (BOARD == BOARD_A3BU_XPLAINED)
+  PORTD.DIRSET = PIN3_bm | PIN1_bm;
+  PORTD.DIRCLR = PIN2_bm;
+
+	SerialSPI_Init(&USARTD0, USART_SPI_ORDER_MSB_FIRST | USART_SPI_SCK_LEAD_RISING | USART_SPI_SAMPLE_TRAILING, 16000000);
+  #else
+    #error Unsupported Board for this Demo!
+  #endif
 #endif
 
 	/* Hardware Initialization */
 	LEDs_Init();
-	SPI_Init(SPI_SPEED_FCPU_DIV_2 | SPI_ORDER_MSB_FIRST | SPI_SCK_LEAD_FALLING | SPI_SAMPLE_TRAILING | SPI_MODE_MASTER);
 	Dataflash_Init();
 	USB_Init();
 

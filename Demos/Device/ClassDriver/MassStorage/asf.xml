@@ -23,6 +23,18 @@
 		<build type="define" name="F_USB" value="48000000UL"/>
 	</project>
 
+	<project caption="Mass Storage Device Demo (Class Driver APIs)" id="lufa.demos.device.class.mass_storage.example.a3bu_xplained">
+		<require idref="lufa.demos.device.class.mass_storage"/>
+		<require idref="lufa.boards.dummy.xmega"/>
+		<generator value="as5_8"/>
+
+		<device-support value="atxmega256a3bu"/>
+		<config name="lufa.drivers.board.name" value="a3bu_xplained"/>
+
+		<build type="define" name="F_CPU" value="32000000UL"/>
+		<build type="define" name="F_USB" value="48000000UL"/>
+	</project>
+
 	<module type="application" id="lufa.demos.device.class.mass_storage" caption="Mass Storage Device Demo (Class Driver APIs)">
 		<info type="description" value="summary">
 		Mass Storage device demo, implementing a basic USB storage disk using a Dataflash memory IC. This demo uses the user-friendly USB Class Driver APIs to provide a simple, abstracted interface into the USB stack.
