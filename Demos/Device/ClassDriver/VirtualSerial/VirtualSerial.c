@@ -80,17 +80,21 @@ int main(void)
 	SetupHardware();
 
 	/* Create a regular character stream for the interface so that it can be used with the stdio.h functions */
-	CDC_Device_CreateStream(&VirtualSerial_CDC_Interface, &USBSerialStream);
+	CDC_Device_CreateBlockingStream(&VirtualSerial_CDC_Interface, &USBSerialStream);
 
 	LEDs_SetAllLEDs(LEDMASK_USB_NOTREADY);
 	GlobalInterruptEnable();
 
+  int char_recvd;
+
 	for (;;)
 	{
-		CheckJoystickMovement();
-
-		/* Must throw away unused bytes from the host, or it will lock up while waiting for the device */
-		CDC_Device_ReceiveByte(&VirtualSerial_CDC_Interface);
+    if (EOF != (char_recvd = fgetc(&USBSerialStream))) {
+      fputc(char_recvd, &USBSerialStream);
+      if (char_recvd == '\r') {
+        fputc('\n', &USBSerialStream);
+      }
+    }
 
 		CDC_Device_USBTask(&VirtualSerial_CDC_Interface);
 		USB_USBTask();
@@ -120,41 +124,8 @@ void SetupHardware(void)
 #endif
 
 	/* Hardware Initialization */
-	Joystick_Init();
 	LEDs_Init();
 	USB_Init();
-}
-
-/** Checks for changes in the position of the board joystick, sending strings to the host upon each change. */
-void CheckJoystickMovement(void)
-{
-	uint8_t     JoyStatus_LCL = Joystick_GetStatus();
-	char*       ReportString  = NULL;
-	static bool ActionSent    = false;
-
-	if (JoyStatus_LCL & JOY_UP)
-	  ReportString = "Joystick Up\r\n";
-	else if (JoyStatus_LCL & JOY_DOWN)
-	  ReportString = "Joystick Down\r\n";
-	else if (JoyStatus_LCL & JOY_LEFT)
-	  ReportString = "Joystick Left\r\n";
-	else if (JoyStatus_LCL & JOY_RIGHT)
-	  ReportString = "Joystick Right\r\n";
-	else if (JoyStatus_LCL & JOY_PRESS)
-	  ReportString = "Joystick Pressed\r\n";
-	else
-	  ActionSent = false;
-
-	if ((ReportString != NULL) && (ActionSent == false))
-	{
-		ActionSent = true;
-
-		/* Write the string to the virtual COM port via the created character stream */
-		fputs(ReportString, &USBSerialStream);
-
-		/* Alternatively, without the stream: */
-		// CDC_Device_SendString(&VirtualSerial_CDC_Interface, ReportString);
-	}
 }
 
 /** Event handler for the library USB Connection event. */
