@@ -148,7 +148,7 @@ MSG_OBJDMP_CMD   := ' [OBJDMP]  :'
 
 # Convert input source file list to differentiate them by type
 C_SOURCE   := $(filter %.c, $(SRC))
-CPP_SOURCE := $(filter %.cpp, $(SRC))
+CPP_SOURCE := $(filter %.cpp, $(SRC)) $(filter %.cc, $(SRC))
 ASM_SOURCE := $(filter %.S, $(SRC))
 
 # Create a list of unknown source file types, if any are found throw an error
@@ -281,6 +281,11 @@ $(SRC):
 	@echo $(MSG_COMPILE_CMD) Generating assembly from C++ file \"$(notdir $<)\"
 	$(CROSS)-gcc -S $(BASE_CC_FLAGS) $(BASE_CPP_FLAGS) $(CC_FLAGS) $(CPP_FLAGS) $< -o $@
 
+# Compiles an input C++ source file and generates an assembly listing for it
+%.s: %.cc $(MAKEFILE_LIST)
+	@echo $(MSG_COMPILE_CMD) Generating assembly from C++ file \"$(notdir $<)\"
+	$(CROSS)-gcc -S $(BASE_CC_FLAGS) $(BASE_CPP_FLAGS) $(CC_FLAGS) $(CPP_FLAGS) $< -o $@
+
 # Compiles an input C source file and generates a linkable object file for it
 $(OBJDIR)/%.o: %.c $(MAKEFILE_LIST)
 	@echo $(MSG_COMPILE_CMD) Compiling C file \"$(notdir $<)\"
@@ -288,6 +293,11 @@ $(OBJDIR)/%.o: %.c $(MAKEFILE_LIST)
 
 # Compiles an input C++ source file and generates a linkable object file for it
 $(OBJDIR)/%.o: %.cpp $(MAKEFILE_LIST)
+	@echo $(MSG_COMPILE_CMD) Compiling C++ file \"$(notdir $<)\"
+	$(CROSS)-gcc -c $(BASE_CC_FLAGS) $(BASE_CPP_FLAGS) $(CC_FLAGS) $(CPP_FLAGS) -MMD -MP -MF $(@:%.o=%.d) $< -o $@
+
+# Compiles an input C++ source file and generates a linkable object file for it
+$(OBJDIR)/%.o: %.cc $(MAKEFILE_LIST)
 	@echo $(MSG_COMPILE_CMD) Compiling C++ file \"$(notdir $<)\"
 	$(CROSS)-gcc -c $(BASE_CC_FLAGS) $(BASE_CPP_FLAGS) $(CC_FLAGS) $(CPP_FLAGS) -MMD -MP -MF $(@:%.o=%.d) $< -o $@
 
